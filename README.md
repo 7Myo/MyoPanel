@@ -1,62 +1,179 @@
-# Myo's Panel v1.2
+#  Myo's Panel v1.2
 
-> Panel web LAN pour gérer plusieurs bots Discord Node.js avec PM2.
+> Interface web LAN pour gérer, superviser et déployer plusieurs bots Discord Node.js via PM2.
 
-**Myo's Panel** est une interface web conçue pour fonctionner sur le réseau local (LAN). Elle permet de gérer, superviser et déployer plusieurs bots Discord Node.js hébergés sur un même serveur (Raspberry Pi, VPS, serveur Linux).
-
----
-
-## Fonctionnalités
-
-- **Dashboard temps réel** — CPU, RAM, disque, température, statut des bots, logs (Socket.IO)
-- **Gestion multi-bots** — Démarrage, arrêt, redémarrage via PM2
-- **Import ZIP sécurisé** — Upload de projets bots avec analyse automatique avant installation
-- **Scan de commandes** — Détection automatique des commandes slash et préfixées
-- **Sauvegardes & restauration** — Archives ZIP avec restauration一键
-- **Logs centralisés** — Filtrage par bot, niveau, source, export TXT
-- **Stockage** — Analyse détaillée de l'utilisation disque par bot
-- **Serveurs Discord** — Visualisation des guildes avec graphiques
-- **Gestion des utilisateurs** — 3 rôles (admin, modérateur, lecture seule) avec permissions configurables
-- **Mode sombre/clair** — Fond d'écran personnalisable
-- **Configuration initiale** — Écran de création du compte admin au premier démarrage
+![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)
+![React](https://img.shields.io/badge/React-18-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Raspberry%20Pi-lightgrey)
 
 ---
 
-## Stack technique
+##  Présentation
 
-| Backend | Frontend | Base de données |
-|---|---|---|
-| Node.js 20+, Express 4 | React 18, Vite 6 | SQLite (better-sqlite3) |
-| Socket.IO 4, PM2 5 | Tailwind CSS 3, Recharts | WAL mode |
-| JWT + bcryptjs | Axios | |
+**Myo's Panel** est une interface web moderne conçue pour fonctionner sur un réseau local (LAN). Elle permet d'administrer plusieurs bots Discord hébergés sur un même serveur Linux (Raspberry Pi, VPS ou machine dédiée).
+
+L'objectif est de centraliser la gestion, la surveillance et le déploiement des bots dans une interface unique, simple et sécurisée.
 
 ---
 
-## Démarrage rapide (Raspberry Pi / Linux)
+##  Fonctionnalités
+
+###  Dashboard temps réel
+
+* Utilisation CPU
+* Utilisation RAM
+* Espace disque
+* Température système
+* Statut des bots
+* Flux de logs en direct via Socket.IO
+
+###  Gestion multi-bots
+
+* Démarrage
+* Arrêt
+* Redémarrage
+* Gestion via PM2
+
+###  Import sécurisé
+
+* Upload de projets ZIP
+* Analyse automatique avant installation
+* Détection des fichiers sensibles
+* Validation de structure
+
+###  Scan automatique des commandes
+
+* Commandes Slash (`/`)
+* Commandes préfixées (`!`, `?`, etc.)
+* Génération automatique des informations
+
+###  Sauvegardes & restauration
+
+* Création d'archives ZIP
+* Restauration en un clic
+* Historique des sauvegardes
+
+###  Logs centralisés
+
+* Filtrage par bot
+* Filtrage par niveau
+* Filtrage par source
+* Export TXT
+
+###  Gestion du stockage
+
+* Analyse détaillée par bot
+* Taille des dossiers
+* Répartition de l'espace disque
+
+###  Serveurs Discord
+
+* Liste des guildes
+* Statistiques
+* Graphiques interactifs
+
+###  Gestion des utilisateurs
+
+Trois niveaux d'accès :
+
+| Rôle          | Description             |
+| ------------- | ----------------------- |
+| Admin         | Accès complet           |
+| Modérateur    | Gestion limitée         |
+| Lecture seule | Consultation uniquement |
+
+Permissions entièrement configurables.
+
+###  Interface personnalisable
+
+* Mode sombre
+* Mode clair
+* Fond d'écran personnalisable
+
+###  Configuration initiale
+
+Lors du premier démarrage :
+
+* Création du compte administrateur
+* Initialisation automatique de la base de données
+* Configuration sécurisée
+
+---
+
+##  Stack Technique
+
+| Backend     | Frontend       | Base de données |
+| ----------- | -------------- | --------------- |
+| Node.js 20+ | React 18       | SQLite          |
+| Express 4   | Vite 6         | better-sqlite3  |
+| Socket.IO 4 | Tailwind CSS 3 | WAL Mode        |
+| PM2 5       | Recharts       |                 |
+| JWT         | Axios          |                 |
+| bcryptjs    |                |                 |
+
+---
+
+##  Installation rapide
+
+### Raspberry Pi / Linux
 
 ```bash
 chmod +x deploy.sh
 sudo ./deploy.sh
 ```
 
-Le script installe tout automatiquement (Node.js, dépendances, PM2, service systemd, firewall).
+Le script installe automatiquement :
 
-**Première connexion :** `http://IP_DU_SERVEUR:3000` — crée ton compte admin.
+* Node.js
+* Dépendances système
+* PM2
+* Service systemd
+* Configuration du pare-feu
 
 ---
 
-## Installation manuelle
+##  Première connexion
+
+Une fois l'installation terminée :
+
+```text
+http://IP_DU_SERVEUR:3000
+```
+
+Créez ensuite votre compte administrateur.
+
+---
+
+##  Installation manuelle
+
+### Prérequis
 
 ```bash
-# Prérequis
 sudo apt install -y curl git build-essential python3
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-sudo npm install -g pm2
 
-# Installation
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+sudo apt install -y nodejs
+
+sudo npm install -g pm2
+```
+
+### Installation du projet
+
+```bash
 cp env.example .env
-# Modifie JWT_SECRET dans .env !
+```
+
+ Modifiez impérativement la variable :
+
+```env
+JWT_SECRET=VotreSecretUltraSecurise
+```
+
+Puis :
+
+```bash
 npm install
 npm run build
 node apps/api/src/server.js
@@ -64,7 +181,7 @@ node apps/api/src/server.js
 
 ---
 
-## Développement
+##  Développement
 
 ```bash
 cp env.example .env
@@ -72,44 +189,107 @@ npm install
 npm run dev
 ```
 
-Frontend : `http://localhost:5173` — API : `http://localhost:3000`
+Services disponibles :
+
+| Service  | URL                   |
+| -------- | --------------------- |
+| Frontend | http://localhost:5173 |
+| API      | http://localhost:3000 |
 
 ---
 
-## Configuration (.env)
+## ⚙️ Configuration
 
-| Variable | Défaut | Description |
-|---|---|---|
-| `PORT` | 3000 | Port du serveur |
-| `LAN_ONLY` | true | Restreindre au réseau local |
-| `JWT_SECRET` | — | Clé secrète JWT (⚠️ à changer absolument) |
-| `MAX_UPLOAD_MB` | 250 | Taille max d'upload ZIP |
-| `PM2_MAX_MEMORY` | 350M | Mémoire max par bot |
+### Variables d'environnement
 
----
-
-## API - Endpoints principaux
-
-| Méthode | Route | Description |
-|---|---|---|
-| POST | `/api/auth/login` | Connexion |
-| GET | `/api/bots` | Liste des bots |
-| POST | `/api/bots/:id/actions/:action` | start / stop / restart |
-| POST | `/api/imports/upload` | Upload ZIP |
-| GET | `/api/system/metrics` | Métriques système |
-| GET | `/api/logs` | Logs (avec filtres) |
-| GET | `/api/storage` | Analyse stockage |
-| PUT | `/api/guilds/:botId` | Report guildes (auth bot token) |
+| Variable       | Valeur par défaut | Description                 |
+| -------------- | ----------------- | --------------------------- |
+| PORT           | 3000              | Port du serveur             |
+| LAN_ONLY       | true              | Restriction au réseau local |
+| JWT_SECRET     | —                 | Clé secrète JWT             |
+| MAX_UPLOAD_MB  | 250               | Taille maximale des ZIP     |
+| PM2_MAX_MEMORY | 350M              | Mémoire maximale par bot    |
 
 ---
 
-## Licence
+## 🔌 API
 
-MIT — Créé par © 2026 Myo's Development.
+### Authentification
+
+| Méthode | Route             |
+| ------- | ----------------- |
+| POST    | `/api/auth/login` |
+
+### Bots
+
+| Méthode | Route                           |
+| ------- | ------------------------------- |
+| GET     | `/api/bots`                     |
+| POST    | `/api/bots/:id/actions/:action` |
+
+Actions disponibles :
+
+```text
+start
+stop
+restart
+```
+
+### Import
+
+| Méthode | Route                 |
+| ------- | --------------------- |
+| POST    | `/api/imports/upload` |
+
+### Système
+
+| Méthode | Route                 |
+| ------- | --------------------- |
+| GET     | `/api/system/metrics` |
+| GET     | `/api/storage`        |
+
+### Logs
+
+| Méthode | Route       |
+| ------- | ----------- |
+| GET     | `/api/logs` |
+
+### Guildes Discord
+
+| Méthode | Route                |
+| ------- | -------------------- |
+| PUT     | `/api/guilds/:botId` |
+
+---
+
+##  Sécurité
+
+* Authentification JWT
+* Hashage des mots de passe avec bcryptjs
+* Analyse des ZIP avant installation
+* Permissions par rôle
+* Restriction réseau local (LAN)
+* Validation des uploads
+
+---
+
+##  Licence
+
+Distribué sous licence **MIT**.
+
+Copyright © 2026
+**Myo's Development**
+
+---
+
+##  Liens
+
+* Discord : https://discord.gg/ZKP8VjxCfC
+* GitHub : https://github.com/7Myo
 
 ---
 
 <p align="center">
-  <a href="https://discord.gg/ZKP8VjxCfC">Discord</a> •
-  <a href="https://github.com/7Myo">GitHub</a>
+  Made with by Myo's Development
 </p>
+
