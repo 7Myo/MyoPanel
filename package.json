@@ -6,8 +6,7 @@
   "type": "module",
   "workspaces": [
     "apps/api",
-    "apps/web",
-    "packages/shared"
+    "apps/web"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",

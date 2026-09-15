@@ -1673,7 +1673,7 @@ function ToastContainer({ toasts, onRemove }) {
   );
 }
 
-function Toast({ id, message, type, onClose }) {
+function Toast({ message, type, onClose }) {
   const [exiting, setExiting] = useState(false);
 
   const handleClose = () => {
