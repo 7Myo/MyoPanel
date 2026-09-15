@@ -15,6 +15,7 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -473,7 +474,7 @@ textarea {
 }
 
 .panel-card {
-  @apply rounded-2xl border p-5 transition-shadow duration-200 ease-out;
+  @apply min-w-0 rounded-2xl border p-5 transition-shadow duration-200 ease-out;
   border-color: #E8E4D9;
   background: #FFFFFA;
 }
@@ -505,6 +506,17 @@ textarea {
 .sidebar {
   background: rgba(255, 254, 249, 0.95);
   border-color: #E8E4D9;
+}
+
+@media (max-width: 639px) {
+  .panel-card {
+    padding: 1rem;
+  }
+
+  .search-box {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 .dark .sidebar {

@@ -123,29 +123,11 @@ chmod +x deploy.sh
 sudo ./deploy.sh
 ```
 
-Le script installe automatiquement :
-
-* Node.js
-* Dépendances système
-* PM2
-* Service systemd
-* Configuration du pare-feu
+Le script installe automatiquement Node.js 20+, les dépendances, PM2, le service systemd et la configuration du pare-feu.
 
 ---
 
-##  Première connexion
-
-Une fois l'installation terminée :
-
-```text
-http://IP_DU_SERVEUR:3000
-```
-
-Créez ensuite votre compte administrateur.
-
----
-
-##  Installation manuelle
+## Installation manuelle
 
 ### Prérequis
 
@@ -163,38 +145,51 @@ sudo npm install -g pm2
 
 ```bash
 cp env.example .env
+npm ci
+npm run build
 ```
 
- Modifiez impérativement la variable :
+Définissez impérativement une valeur forte pour `JWT_SECRET` avant le premier démarrage :
 
 ```env
 JWT_SECRET=VotreSecretUltraSecurise
 ```
 
-Puis :
+L'API sert aussi le frontend compilé :
 
 ```bash
-npm install
-npm run build
-node apps/api/src/server.js
+npm start
 ```
 
----
+## Première connexion
 
-##  Développement
+Ouvrez `http://IP_DU_SERVEUR:3000`, puis créez le compte administrateur lors de la configuration initiale.
+
+## Développement
 
 ```bash
 cp env.example .env
-npm install
+npm ci
 npm run dev
 ```
 
 Services disponibles :
 
-| Service  | URL                   |
-| -------- | --------------------- |
-| Frontend | http://localhost:5173 |
-| API      | http://localhost:3000 |
+| Service | URL |
+| --- | --- |
+| Frontend Vite | http://localhost:5173 |
+| API | http://localhost:3000 |
+
+Vite transmet automatiquement `/api` et `/socket.io` vers l'API locale. En production, lancez `npm run build` avant `npm start`.
+
+### Vérification avant mise en production
+
+```bash
+npm run build
+npm test
+```
+
+Le projet utilise `npm ci` pour respecter le `package-lock.json` versionné.
 
 ---
 
@@ -292,4 +287,3 @@ Copyright © 2026
 <p align="center">
   Made with by Myo's Development
 </p>
-

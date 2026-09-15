@@ -200,7 +200,7 @@ function Panel() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-500 ${wallpaper ? "" : "bg-snow dark:bg-smoke"}`}
+      className={`relative min-h-screen overflow-x-hidden transition-colors duration-500 ${wallpaper ? "" : "bg-snow dark:bg-smoke"}`}
       style={wallpaper ? {
         backgroundImage: `url(${wallpaper})`,
         backgroundSize: "cover",
@@ -208,7 +208,7 @@ function Panel() {
         backgroundAttachment: "fixed"
       } : undefined}
     >
-      {wallpaper && <div className="fixed inset-0 bg-snow/75 dark:bg-smoke/85 backdrop-blur-sm -z-10" />}
+      {wallpaper && <div className="pointer-events-none fixed inset-0 z-0 bg-snow/75 backdrop-blur-sm dark:bg-smoke/85" />}
       <aside className="fixed inset-y-0 left-0 hidden w-72 sidebar border-r px-5 py-6 backdrop-blur-xl z-20 lg:block shadow-sm">
         <Brand />
         <nav className="mt-8 space-y-1">
@@ -225,7 +225,7 @@ function Panel() {
         </nav>
       </aside>
 
-      <main className="lg:pl-72">
+      <main className="relative z-10 min-w-0 lg:pl-72">
         <header className="sticky top-0 z-30 topbar border-b px-5 py-3.5 backdrop-blur-xl sm:px-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -279,7 +279,7 @@ function Panel() {
           </div>
         </header>
 
-        <section className="px-4 py-6 sm:px-6 lg:px-8">
+        <section className="min-w-0 px-4 py-6 sm:px-6 lg:px-8">
           <ToastContainer toasts={toasts} onRemove={removeToast} />
           {loading && <div className="mb-5 flex items-center gap-2 text-sm text-mist-500 dark:text-mist-400"><LoaderIcon size={16} /> Synchronisation du panel</div>}
           {view === "dashboard" && <Dashboard {...context} />}
@@ -599,7 +599,19 @@ function BotsView({ bots, selectedBot, setSelectedBotId, refresh, addToast }) {
               <ActionButton icon={CircleStopIcon} label="Arreter" loading={busy === `${selectedBot.id}:stop`} onClick={() => runAction(selectedBot, "stop")} />
               <ActionButton icon={RotateIcon} label="Redemarrer" loading={busy === `${selectedBot.id}:restart`} onClick={() => runAction(selectedBot, "restart")} />
               <ActionButton icon={FileCodeIcon} label="Scanner commandes" loading={busy === `${selectedBot.id}:refresh-commands`} onClick={() => runAction(selectedBot, "refresh-commands")} />
-              <ActionButton icon={ArchiveIcon} label="Sauvegarder" onClick={async () => { await api.post(`/bots/${selectedBot.id}/backups`); addToast("Sauvegarde creee.", "success"); refresh(); }} />
+              <ActionButton
+                icon={ArchiveIcon}
+                label="Sauvegarder"
+                onClick={async () => {
+                  try {
+                    await api.post(`/bots/${selectedBot.id}/backups`);
+                    addToast("Sauvegarde creee.", "success");
+                    await refresh();
+                  } catch (err) {
+                    addToast(err.response?.data?.error?.message || "Sauvegarde impossible.", "error");
+                  }
+                }}
+              />
               <ActionButton icon={TrashIcon} label="Supprimer" tone="danger" onClick={() => setShowDelete(true)} />
             </div>
 
@@ -1184,8 +1196,12 @@ function UsersView({ users, currentUser, refresh, addToast }) {
 }
 
 function BackupsView({ backups, refresh, addToast }) {
-  const download = (backup) => {
-    downloadFromApi(`/backups/${backup.id}/download`, `${backup.botName || "bot"}-backup.zip`);
+  const download = async (backup) => {
+    try {
+      await downloadFromApi(`/backups/${backup.id}/download`, `${backup.botName || "bot"}-backup.zip`);
+    } catch (err) {
+      addToast(err.response?.data?.error?.message || "Telechargement impossible.", "error");
+    }
   };
 
   const restore = async (backup) => {
@@ -1201,9 +1217,13 @@ function BackupsView({ backups, refresh, addToast }) {
 
   const remove = async (backup) => {
     if (!confirm(`Supprimer definitivement cette sauvegarde ?`)) return;
-    await api.delete(`/backups/${backup.id}`);
-    addToast("Sauvegarde supprimee.", "success");
-    refresh();
+    try {
+      await api.delete(`/backups/${backup.id}`);
+      addToast("Sauvegarde supprimee.", "success");
+      await refresh();
+    } catch (err) {
+      addToast(err.response?.data?.error?.message || "Suppression impossible.", "error");
+    }
   };
 
   return (
@@ -1233,7 +1253,7 @@ function BackupsView({ backups, refresh, addToast }) {
   );
 }
 
-function SettingsView({ metrics, darkMode, toggleDarkMode, wallpaper, saveWallpaper, removeWallpaper }) {
+function SettingsView({ metrics, darkMode, toggleDarkMode, wallpaper, saveWallpaper, removeWallpaper, addToast }) {
   const fileRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -1280,8 +1300,9 @@ function SettingsView({ metrics, darkMode, toggleDarkMode, wallpaper, saveWallpa
         saveWallpaper(e.target.result);
       };
       reader.readAsDataURL(selectedFile);
-    } catch {
-      if (preview) saveWallpaper(preview);
+    } catch (err) {
+      addToast(err.response?.data?.error?.message || "Upload du fond impossible.", "error");
+      return;
     }
     setPreview(null);
     setSelectedFile(null);
@@ -1644,7 +1665,7 @@ function EmptyState({ icon: Icon, title, text }) {
 function ToastContainer({ toasts, onRemove }) {
   if (!toasts.length) return null;
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="pointer-events-none fixed left-4 right-4 top-4 z-50 flex w-auto max-w-sm flex-col gap-2 sm:left-auto sm:w-full">
       {toasts.map((toast) => (
         <Toast key={toast.id} {...toast} onClose={() => onRemove(toast.id)} />
       ))}
