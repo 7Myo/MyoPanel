@@ -16,6 +16,17 @@ import { getSystemSnapshot } from "./services/systemService.js";
 
 const require = createRequire(import.meta.url);
 const { Server } = require("socket.io");
+const allowedOrigins = new Set([
+  config.publicBaseUrl,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  ...(process.env.CORS_ORIGINS || "").split(",").map((value) => value.trim()).filter(Boolean)
+]);
+
+function corsOrigin(origin, callback) {
+  if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+  callback(new Error("Origine CORS non autorisee."));
+}
 
 ensureRuntimeDirectories();
 initDatabase();
@@ -24,7 +35,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: true,
+    origin: corsOrigin,
     credentials: true
   }
 });
@@ -34,7 +45,7 @@ app.disable("x-powered-by");
 app.use(helmet({
   contentSecurityPolicy: false
 }));
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(lanOnly);
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -68,5 +79,7 @@ server.listen(config.port, config.host, () => {
   const message = `Myo's Panel ecoute sur http://${config.host}:${config.port} (LAN_ONLY=${config.lanOnly})`;
   console.log(message);
   addLog({ source: "panel", level: "info", message });
-  getSystemSnapshot().then(() => console.log("[metrics] Cache systeme pre-charge.")).catch(() => null);
+  getSystemSnapshot().then(() => console.log("[metrics] Cache systeme pre-charge.")).catch((error) => {
+    console.error("[metrics] Prechargement impossible:", error);
+  });
 });

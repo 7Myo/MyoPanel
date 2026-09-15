@@ -8,8 +8,8 @@ export default {
         mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"]
       },
       colors: {
-        snow: "#FFFEF9",
-        smoke: "#100C08",
+        snow: "#F7F7F8",
+        smoke: "#050506",
         sage: {
           50: "#F4F8F5",
           100: "#E3EDE6",
@@ -50,17 +50,17 @@ export default {
           DEFAULT: "#C4645A"
         },
         mist: {
-          50: "#FCFBFA",
-          100: "#F5F3ED",
-          200: "#E8E4D9",
-          300: "#D1CDC0",
-          400: "#B5B0A3",
-          500: "#9C9688",
-          600: "#807A6D",
-          700: "#686358",
-          800: "#565148",
-          900: "#4A4540",
-          DEFAULT: "#D1CDC0"
+          50: "#fafafa",
+          100: "#f4f4f5",
+          200: "#e4e4e7",
+          300: "#d4d4d8",
+          400: "#a1a1aa",
+          500: "#71717a",
+          600: "#52525b",
+          700: "#3f3f46",
+          800: "#27272a",
+          900: "#18181b",
+          DEFAULT: "#d4d4d8"
         }
       },
       boxShadow: {

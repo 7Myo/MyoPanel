@@ -48,6 +48,6 @@ export function ensureRuntimeDirectories() {
   }
 
   if (config.nodeEnv === "production" && config.jwtSecret === "dev-only-change-this-secret") {
-    console.warn("[security] JWT_SECRET utilise la valeur de developpement. Definis une valeur forte dans .env.");
+    throw new Error("JWT_SECRET doit etre defini avec une valeur forte en production.");
   }
 }

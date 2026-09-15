@@ -47,8 +47,14 @@ export async function describeProcess(name) {
 }
 
 export async function startBot(bot) {
-  const script = bot.entrypoint ? path.resolve(bot.project_path, bot.entrypoint) : undefined;
-  if (!script) throw new Error("Point d'entree introuvable pour ce bot.");
+  const projectPath = path.resolve(bot.project_path);
+  const projectRelative = path.relative(config.botsDir, projectPath);
+  const script = bot.entrypoint ? path.resolve(projectPath, bot.entrypoint) : undefined;
+  const relative = script ? path.relative(projectPath, script) : "";
+  if (!projectRelative || projectRelative.startsWith("..") || path.isAbsolute(projectRelative)
+    || !script || !relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error("Point d'entree invalide pour ce bot.");
+  }
 
   return withPm2((pm2) => call(pm2, "start", {
     name: bot.pm2_name,

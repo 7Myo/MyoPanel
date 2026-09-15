@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import { Router } from "express";
+import path from "node:path";
 import { db, nowIso } from "../db/client.js";
 import { requireAuth, canManageBots } from "../middleware/auth.js";
 import { asyncHandler, HttpError, sendCreated } from "../utils/http.js";
@@ -15,6 +16,28 @@ export const botsRouter = Router();
 
 botsRouter.use(requireAuth);
 
+function managedProjectPath(value) {
+  const projectPath = path.resolve(String(value || ""));
+  const relative = path.relative(config.botsDir, projectPath);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new HttpError(400, "Le projet doit etre situe dans le dossier gere des bots.");
+  }
+  return projectPath;
+}
+
+async function validateEntrypoint(projectPath, entrypoint) {
+  const value = String(entrypoint || "").trim();
+  if (!value || path.isAbsolute(value)) throw new HttpError(400, "Point d'entree invalide.");
+  const script = path.resolve(projectPath, value);
+  const relative = path.relative(projectPath, script);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new HttpError(400, "Le point d'entree doit rester dans le projet.");
+  }
+  const stat = await fs.stat(script).catch(() => null);
+  if (!stat?.isFile()) throw new HttpError(400, "Le point d'entree est introuvable.");
+  return value;
+}
+
 botsRouter.get("/", asyncHandler(async (_req, res) => {
   const bots = db.prepare("SELECT * FROM bots ORDER BY created_at DESC").all();
   const pm2 = await safePm2List();
@@ -23,10 +46,11 @@ botsRouter.get("/", asyncHandler(async (_req, res) => {
 
 botsRouter.post("/", canManageBots, asyncHandler(async (req, res) => {
   const name = String(req.body.name || "").trim();
-  const projectPath = String(req.body.projectPath || "").trim();
+  const projectPath = managedProjectPath(req.body.projectPath);
   const entrypoint = String(req.body.entrypoint || "").trim();
   if (!name || !projectPath || !entrypoint) throw new HttpError(400, "Nom, chemin projet et point d'entree requis.");
   if (!await fs.pathExists(projectPath)) throw new HttpError(400, "Chemin projet introuvable.");
+  const validEntrypoint = await validateEntrypoint(projectPath, entrypoint);
 
   const slug = uniqueSlug(name, (candidate) => Boolean(db.prepare("SELECT id FROM bots WHERE slug = ?").get(candidate)));
   const id = randomUUID();
@@ -35,7 +59,7 @@ botsRouter.post("/", canManageBots, asyncHandler(async (req, res) => {
   db.prepare(`
     INSERT INTO bots (id, name, slug, description, project_path, entrypoint, pm2_name, bot_token, status, install_status, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'stopped', 'ready', ?, ?)
-  `).run(id, name, slug, req.body.description || "", projectPath, entrypoint, `myos-${slug}`, botToken, now, now);
+  `).run(id, name, slug, req.body.description || "", projectPath, validEntrypoint, `myos-${slug}`, botToken, now, now);
 
   const commands = await analyzeCommands(projectPath);
   replaceBotCommands(id, commands);
@@ -44,6 +68,9 @@ botsRouter.post("/", canManageBots, asyncHandler(async (req, res) => {
 
 botsRouter.get("/:id", asyncHandler(async (req, res) => {
   const bot = getBot(req.params.id);
+  const entrypoint = req.body.entrypoint === undefined
+    ? bot.entrypoint
+    : await validateEntrypoint(managedProjectPath(bot.project_path), req.body.entrypoint);
   const pm2 = await safeDescribe(bot.pm2_name);
   res.json({ bot: mapBot(bot, pm2), backups: listBackups(bot.id) });
 }));
@@ -59,7 +86,7 @@ botsRouter.patch("/:id", canManageBots, asyncHandler(async (req, res) => {
     name: req.body.name ?? bot.name,
     description: req.body.description ?? bot.description,
     enabled: req.body.enabled === undefined ? bot.enabled : (req.body.enabled ? 1 : 0),
-    entrypoint: req.body.entrypoint ?? bot.entrypoint,
+    entrypoint,
     updated_at: nowIso()
   });
   res.json({ bot: mapBot(getBot(bot.id)) });
@@ -67,10 +94,11 @@ botsRouter.patch("/:id", canManageBots, asyncHandler(async (req, res) => {
 
 botsRouter.delete("/:id", canManageBots, asyncHandler(async (req, res) => {
   const bot = getBot(req.params.id);
-  await deleteBot(bot).catch(() => null);
+  await deleteBot(bot);
   if (req.query.removeFiles === "true") {
+    const projectPath = managedProjectPath(bot.project_path);
     await createBackup(bot.id, req.user.id, "Sauvegarde automatique avant suppression");
-    await fs.remove(bot.project_path);
+    await fs.remove(projectPath);
   }
   db.prepare("DELETE FROM bots WHERE id = ?").run(bot.id);
   addLog({ source: "pm2", level: "warning", message: `Bot retire du panel: ${bot.name}` });
@@ -161,7 +189,6 @@ function mapBot(row, pm2 = null) {
     entrypoint: row.entrypoint,
     packageManager: row.package_manager,
     pm2Name: row.pm2_name,
-    botToken: row.bot_token,
     status: pm2?.status || row.status,
     enabled: Boolean(row.enabled),
     installStatus: row.install_status,

@@ -16,5 +16,7 @@ systemRouter.get("/metrics", asyncHandler(async (_req, res) => {
 }));
 
 systemRouter.get("/history", (req, res) => {
-  res.json({ history: getMetricHistory("system", Number(req.query.limit) || 288) });
+  const requested = Number(req.query.limit || 288);
+  if (!Number.isInteger(requested) || requested < 1) return res.status(400).json({ error: { message: "Limit invalide." } });
+  res.json({ history: getMetricHistory("system", Math.min(requested, 1000)) });
 });

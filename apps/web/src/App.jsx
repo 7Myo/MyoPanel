@@ -95,7 +95,7 @@ function Panel() {
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("myos-darkMode");
-    return saved === "true";
+    return saved === null || saved === "true";
   });
   const [wallpaper, setWallpaper] = useState(() => localStorage.getItem("myos-wallpaper") || null);
 
@@ -231,7 +231,7 @@ function Panel() {
             <div className="flex min-w-0 items-center gap-3">
               <div className="lg:hidden"><Brand compact /></div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-smoke dark:text-mist-100">LAN panel</p>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-mist-400">myo.dev / control center</p>
                 <h1 className="text-xl font-semibold text-smoke dark:text-mist-100">{titleFor(view)}</h1>
               </div>
             </div>
@@ -686,10 +686,9 @@ function GuildsView({ bots, selectedBotId, setSelectedBotId, refresh, addToast }
     ...botGroups.map((g) => ({
       ...g,
       hasGuilds: true,
-      status: g.botStatus,
-      botToken: bots.find((b) => b.id === g.botId)?.botToken
+      status: g.botStatus
     })),
-    ...botsWithoutGuilds.map((b) => ({ botId: b.id, botName: b.name, botStatus: b.status, guilds: [], hasGuilds: false, botToken: b.botToken }))
+    ...botsWithoutGuilds.map((b) => ({ botId: b.id, botName: b.name, botStatus: b.status, guilds: [], hasGuilds: false }))
   ];
 
   const selectedGroup = allBots.find((g) => g.botId === selectedBotId) || allBots[0];
@@ -820,36 +819,10 @@ function GuildsView({ bots, selectedBotId, setSelectedBotId, refresh, addToast }
                   </div>
                 )}
 
-                {selectedGroup.botToken && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer text-mist-400 hover:text-mist-600 dark:hover:text-mist-300 transition-colors">
-                      Token bot (pour report guilds)
-                    </summary>
-                    <code className="mt-1 block break-all rounded-lg bg-mist-100 p-2 text-[11px] text-smoke dark:bg-mist-900/50 dark:text-mist-200 select-all">
-                      {selectedGroup.botToken}
-                    </code>
-                    <p className="mt-1 text-mist-400">
-                      PUT /api/guilds/{selectedGroup.botId} avec <code className="text-xs">&#123;"guilds":[&#123;"id":"...","name":"...","memberCount":...&#125;]&#125;</code>
-                    </p>
-                  </details>
-                )}
               </div>
             ) : selectedGroup ? (
               <div className="space-y-4">
                 <EmptyState icon={GlobeIcon} title="Aucune donnee de guild" text="Ce bot n'a pas encore transmis ses serveurs Discord." />
-                {selectedGroup.botToken && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer text-mist-400 hover:text-mist-600 dark:hover:text-mist-300 transition-colors">
-                      Token bot (pour report guilds)
-                    </summary>
-                    <code className="mt-1 block break-all rounded-lg bg-mist-100 p-2 text-[11px] text-smoke dark:bg-mist-900/50 dark:text-mist-200 select-all">
-                      {selectedGroup.botToken}
-                    </code>
-                    <p className="mt-1 text-mist-400">
-                      PUT /api/guilds/{selectedGroup.botId} avec <code className="text-xs">&#123;"guilds":[&#123;"id":"...","name":"...","memberCount":...&#125;]&#125;</code>
-                    </p>
-                  </details>
-                )}
               </div>
             ) : (
               <EmptyState icon={GlobeIcon} title="Selectionne un bot" text="Les serveurs Discord apparaitront ici." />
@@ -1552,8 +1525,8 @@ function Brand({ compact = false }) {
       </div>
       {!compact && (
         <div>
-          <p className="text-lg font-bold text-smoke dark:text-mist-100">Myo&apos;s Panel</p>
-          <p className="text-xs text-mist-500 dark:text-mist-400">Discord bots manager</p>
+          <p className="text-lg font-semibold tracking-tight text-smoke dark:text-mist-100">myo.dev</p>
+          <p className="text-xs text-mist-500 dark:text-mist-400">panel operations</p>
         </div>
       )}
     </div>

@@ -8,29 +8,21 @@ import { randomUUID } from "node:crypto";
 export const guildsRouter = Router();
 
 guildsRouter.get("/", requireAuth, asyncHandler(async (_req, res) => {
-  try {
-    const guilds = db.prepare(`
-      SELECT g.*, b.name AS bot_name, b.slug AS bot_slug, b.status AS bot_status
-      FROM bot_guilds g
-      JOIN bots b ON b.id = g.bot_id
-      ORDER BY b.name, g.guild_name
-    `).all();
-    res.json({ guilds: guilds.map(mapGuild) });
-  } catch (err) {
-    res.json({ guilds: [] });
-  }
+  const guilds = db.prepare(`
+    SELECT g.*, b.name AS bot_name, b.slug AS bot_slug, b.status AS bot_status
+    FROM bot_guilds g
+    JOIN bots b ON b.id = g.bot_id
+    ORDER BY b.name, g.guild_name
+  `).all();
+  res.json({ guilds: guilds.map(mapGuild) });
 }));
 
 guildsRouter.get("/:botId", requireAuth, asyncHandler(async (req, res) => {
-  try {
-    const bot = getBot(req.params.botId);
-    const guilds = db.prepare(`
-      SELECT * FROM bot_guilds WHERE bot_id = ? ORDER BY guild_name
-    `).all(bot.id);
-    res.json({ bot: mapBotBrief(bot), guilds: guilds.map(mapGuild) });
-  } catch (err) {
-    res.json({ bot: null, guilds: [] });
-  }
+  const bot = getBot(req.params.botId);
+  const guilds = db.prepare(`
+    SELECT * FROM bot_guilds WHERE bot_id = ? ORDER BY guild_name
+  `).all(bot.id);
+  res.json({ bot: mapBotBrief(bot), guilds: guilds.map(mapGuild) });
 }));
 
 guildsRouter.put("/:botId", requireBotAuth, asyncHandler(async (req, res) => {
@@ -56,12 +48,16 @@ guildsRouter.put("/:botId", requireBotAuth, asyncHandler(async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
+    const seen = new Set();
     for (const guild of guilds) {
       const id = randomUUID();
       const name = String(guild.name || "").trim();
       const guildId = String(guild.id || "").trim();
-      const memberCount = Math.max(0, parseInt(guild.memberCount || 0, 10) || 0);
-      if (!guildId || !name) continue;
+      const memberCount = Number(guild.memberCount);
+      if (!guildId || !name || !Number.isSafeInteger(memberCount) || memberCount < 0 || seen.has(guildId)) {
+        throw new HttpError(400, "Donnees de serveur Discord invalides.");
+      }
+      seen.add(guildId);
 
       insert.run(id, bot.id, guildId, name, memberCount, now, now);
       totalServers++;
@@ -77,6 +73,7 @@ guildsRouter.put("/:botId", requireBotAuth, asyncHandler(async (req, res) => {
   try {
     transaction();
   } catch (err) {
+    if (err instanceof HttpError) throw err;
     throw new HttpError(500, "Erreur lors de la mise a jour des guilds: " + err.message);
   }
 

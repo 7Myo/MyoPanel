@@ -1,6 +1,6 @@
-#  Myo's Panel v1.2
+# Myo's Panel — Control center
 
-> Interface web LAN pour gérer, superviser et déployer plusieurs bots Discord Node.js via PM2.
+> Control center LAN pour piloter, observer et déployer des bots Discord Node.js via PM2.
 
 ![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)
 ![React](https://img.shields.io/badge/React-18-blue)
@@ -11,7 +11,7 @@
 
 ##  Présentation
 
-**Myo's Panel** est une interface web moderne conçue pour fonctionner sur un réseau local (LAN). Elle permet d'administrer plusieurs bots Discord hébergés sur un même serveur Linux (Raspberry Pi, VPS ou machine dédiée).
+**Myo's Panel** est un control center LAN inspiré de la direction artistique de Myo's Developement : interface sombre, surfaces vitrées, accent violet et hiérarchie éditoriale nette. Il permet d'administrer plusieurs bots Discord hébergés sur un même serveur Linux (Raspberry Pi, VPS ou machine dédiée).
 
 L'objectif est de centraliser la gestion, la surveillance et le déploiement des bots dans une interface unique, simple et sécurisée.
 
@@ -108,7 +108,7 @@ Lors du premier démarrage :
 | Node.js 20+ | React 18       | SQLite          |
 | Express 4   | Vite 6         | better-sqlite3  |
 | Socket.IO 4 | Tailwind CSS 3 | WAL Mode        |
-| PM2 5       | Recharts       |                 |
+| PM2 7       | Recharts       |                 |
 | JWT         | Axios          |                 |
 | bcryptjs    |                |                 |
 
@@ -193,7 +193,7 @@ Le projet utilise `npm ci` pour respecter le `package-lock.json` versionné.
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Variables d'environnement
 
@@ -201,6 +201,7 @@ Le projet utilise `npm ci` pour respecter le `package-lock.json` versionné.
 | -------------- | ----------------- | --------------------------- |
 | PORT           | 3000              | Port du serveur             |
 | LAN_ONLY       | true              | Restriction au réseau local |
+| CORS_ORIGINS   | localhost         | Origines frontend autorisées, séparées par des virgules |
 | JWT_SECRET     | —                 | Clé secrète JWT             |
 | MAX_UPLOAD_MB  | 250               | Taille maximale des ZIP     |
 | PM2_MAX_MEMORY | 350M              | Mémoire maximale par bot    |
